@@ -1,0 +1,63 @@
+C51 COMPILER V9.00   MAIN                                                                  05/02/2018 09:29:29 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: D:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /******************************************************************************************** 
+   2              File name:              电子密码锁 
+   3              Main fouction:          六位密码开解锁，包含重置功能，并将实时信息发送到上位机 
+   4              Last modified Date:     2017-10-22 
+   5              Created by:             zzh 
+   6                  Steps for test          1 输入原始密码111111，看是否打开 
+   7                                      2 再锁定，看是否关闭 
+   8                                      3 此时输入错误密码，看是否报警 
+   9                                      4 此时重设，因未解锁看是否报警 
+  10                                      5 输入正确密码，此时重设，输入新密码，此时应保持解锁状态 
+  11                                      6 关锁，输入新密码 
+  12                                      7 重复2~6 
+  13          *********************************************************************************************/  
+  14          #include "function.h"  
+  15            
+  16          //变量初始化  
+  17          uchar key_times = 0;  
+  18          uchar nset = FLAG_RESET_OFF;  
+  19          uchar on_off = FLAG_OFF;  
+  20          uchar i,j,temp;  
+  21          uchar key = 0xff;  
+  22          uchar key_delay = 5;  
+  23            
+  24          void main()  
+  25          {  
+  26   1        init();  
+  27   1            
+  28   1          while(1)  
+  29   1          {  
+  30   2              scankey();  
+  31   2                
+  32   2              if(judge() == 1)  
+  33   2              {  
+  34   3                  led_change(1);  
+  35   3                  on_off = FLAG_ON;  
+  36   3              }  
+  37   2              if(key_times > 6)   
+  38   2                  key_times = 0;  
+  39   2          }  
+  40   1      }  
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     31    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      8    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,5 @@
+"STARTUP.obj",
+"function.obj",
+"main.obj" 
+TO "elcpass" 
+RAMSIZE(256) 

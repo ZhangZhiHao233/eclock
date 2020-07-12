@@ -1,0 +1,268 @@
+C51 COMPILER V9.00   FUNCTION                                                              05/02/2018 09:29:28 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE FUNCTION
+OBJECT MODULE PLACED IN function.OBJ
+COMPILER INVOKED BY: D:\Keil\C51\BIN\C51.EXE function.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include "function.h"  
+   2            
+   3          //保存当前密码，输入密码  
+   4          uchar password[] = {0x01,0x01,0x01,0x01,0x01,0x01};  
+   5          uchar input[] = {0xff,0xff,0xff,0xff,0xff,0xff};  
+   6            
+   7            
+   8          /********************************************************************************** 
+   9              功能:         延时，最小单位为ms(晶振为11.0592 
+  10              计算方法：一个for循环 = 8个指令周期 = 8*12个机器周期 = 8*12*1/11.0592 = 0.0086ms 
+  11                                  xms = 0.0086 * 110 = 0.946 ms 
+  12          ***********************************************************************************/  
+  13          void delayms(uint xms)  
+  14          {  
+  15   1          uint i,j;  
+  16   1          for(i=xms;i>0;i--)             
+  17   1              for(j=110;j>0;j--);  
+  18   1      }  
+  19            
+  20            
+  21          /********************************************************************************** 
+  22              功能:         改变几个led的状态 
+  23          ***********************************************************************************/  
+  24          void led_change(uchar option)  
+  25          {  
+  26   1          if(option == 0)      //关闭状态  
+  27   1          {   
+  28   2              LED_ON = 1;  
+  29   2              LED_OFF = 0;  
+  30   2              LED_SET = 1;  
+  31   2          }  
+  32   1          else if(option == 1) //打开状态  
+  33   1          {  
+  34   2              LED_ON = 0;  
+  35   2              LED_OFF = 1;  
+  36   2              LED_SET = 1;  
+  37   2          }  
+  38   1          else if(option == 2) //设置状态  
+  39   1          {  
+  40   2              LED_ON = 1;  
+  41   2              LED_OFF = 1;  
+  42   2              LED_SET = 0;  
+  43   2          }  
+  44   1      }  
+  45            
+  46            
+  47          /********************************************************************************** 
+  48              功能:         扫描按键得出键值 
+  49              方法：     先扫行，再扫列 
+  50          ***********************************************************************************/  
+  51          void scankey()  
+  52          {  
+  53   1              P1  = 0xef;  
+  54   1            //key = 0xff;  
+  55   1              for(i=0;i<4;i++)  
+C51 COMPILER V9.00   FUNCTION                                                              05/02/2018 09:29:28 PAGE 2   
+
+  56   1            {   
+  57   2              if(L1==0)  
+  58   2                  {  
+  59   3                      delayms(key_delay);  
+  60   3                      if(L1==0)  
+  61   3                          key = i*4+0;   
+  62   3                      if(key < KEY_BORDER && on_off != FLAG_ON)//开锁后按键不计数  
+  63   3                          key_times = key_times+1;  
+  64   3                  }  
+  65   2                  if(L2==0)  
+  66   2                  {     
+  67   3                      delayms(key_delay);  
+  68   3                      if(L2==0)  
+  69   3                          key = i*4+1;    
+  70   3                      if(key < KEY_BORDER && on_off != FLAG_ON)  
+  71   3                          key_times = key_times+1;  
+  72   3                  }  
+  73   2                  if(L3==0 && on_off != FLAG_ON)  
+  74   2                  {  
+  75   3                      delayms(key_delay);  
+  76   3                      if(L3==0)  
+  77   3                          key = i*4+2;  
+  78   3                      if(key < KEY_BORDER)  
+  79   3                          key_times = key_times+1;  
+  80   3                  }  
+  81   2                  if(L4==0 && on_off != FLAG_ON)  
+  82   2                  {  
+  83   3                       delayms(key_delay);  
+  84   3                       if(L4==0)  
+  85   3                           key = i*4+3;   
+  86   3                       if(key < KEY_BORDER)  
+  87   3                          key_times = key_times+1;  
+  88   3                  }  
+  89   2                    
+  90   2                  delayms(5);                 //准备下一次扫描的时间间隔  
+  91   2                  temp=P1;  
+  92   2                  temp=temp|0x0f;  
+  93   2                  temp=temp<<1;  
+  94   2                  temp=temp|0x0f;  
+  95   2                  P1=temp;   
+  96   2            }  
+  97   1                
+  98   1              //扫描后判断键值  
+  99   1              switch(key)  
+ 100   1              {  
+ 101   2                  case    KEY_ENSURE:  
+ 102   2                  {  
+ 103   3                      led_change(0);      //改变灯的状态  
+ 104   3                      key_times = 0;  
+ 105   3                      on_off = FLAG_OFF;//定义宏  
+ 106   3                  }  
+ 107   2                  break;  
+ 108   2                  case  KEY_RESET:  
+ 109   2                  {  
+ 110   3                      if(on_off == FLAG_ON)  
+ 111   3                      {  
+ 112   4                          led_change(2);  
+ 113   4                          key_times = 0;  
+ 114   4                          on_off = FLAG_SETTING;  
+ 115   4                          nset = FLAG_RESET_ON;  
+ 116   4                      }  
+ 117   3                      else if(on_off == FLAG_OFF)  
+C51 COMPILER V9.00   FUNCTION                                                              05/02/2018 09:29:28 PAGE 3   
+
+ 118   3                      {  
+ 119   4                          fmq = 0;  
+ 120   4                          delayms(10);  
+ 121   4                          fmq = 1;  
+ 122   4                          key = 0x00;         //防止在此处循环  
+ 123   4                      }  
+ 124   3                  }  
+ 125   2                  break;  
+ 126   2                  default:break;  
+ 127   2              }  
+ 128   1      }  
+ 129            
+ 130            
+ 131          /********************************************************************************** 
+ 132              功能:         判断密码是否符合设置密码，以及重置新密码 
+ 133          ***********************************************************************************/  
+ 134          bit judge()  
+ 135          {  
+ 136   1           if(nset == FLAG_RESET_OFF)  //默认状态下  
+ 137   1           {  
+ 138   2               //test密码输入后可以进入  
+ 139   2               switch(key_times)  
+ 140   2               {  
+ 141   3                  case 1:input[0] = key;break;  
+ 142   3                  case 2:input[1] = key;break;  
+ 143   3                  case 3:input[2] = key;break;  
+ 144   3                  case 4:input[3] = key;break;  
+ 145   3                  case 5:input[4] = key;break;  
+ 146   3                  case 6:input[5] = key;break;  
+ 147   3                  default:break;  
+ 148   3               }  
+ 149   2                 
+ 150   2           }  
+ 151   1           if(nset == FLAG_RESET_ON) //重置状态下，替换旧密码同时打开锁  
+ 152   1           {  
+ 153   2                  switch(key_times)  
+ 154   2                {  
+ 155   3                  case 1:password[0] = key;input[0] = key;break;  
+ 156   3                  case 2:password[1] = key;input[1] = key;break;  
+ 157   3                  case 3:password[2] = key;input[2] = key;break;  
+ 158   3                  case 4:password[3] = key;input[3] = key;break;  
+ 159   3                  case 5:password[4] = key;input[4] = key;break;  
+ 160   3                  case 6:password[5] = key;input[5] = key;break;  
+ 161   3                  default:break;  
+ 162   3                }  
+ 163   2           }  
+ 164   1             
+ 165   1             
+ 166   1             
+ 167   1          if(key_times == 6)  
+ 168   1          {  
+ 169   2              if(nset == FLAG_RESET_ON )  
+ 170   2                  nset = FLAG_RESET_OFF;  
+ 171   2              key_times = 0;  
+ 172   2              for(j=0;j<6;j++)  
+ 173   2              {  
+ 174   3                  if(password[j] != input[j]) //报警  
+ 175   3                  {  
+ 176   4                      LED_ON = 1;  
+ 177   4                      fmq = 0;  
+ 178   4                      delayms(30);  
+ 179   4                      LED_OFF = ~LED_OFF;  
+C51 COMPILER V9.00   FUNCTION                                                              05/02/2018 09:29:28 PAGE 4   
+
+ 180   4                      delayms(30);  
+ 181   4                      LED_OFF = ~LED_OFF;  
+ 182   4                      delayms(30);  
+ 183   4                      LED_OFF = ~LED_OFF;  
+ 184   4                      delayms(30);  
+ 185   4                      LED_OFF = ~LED_OFF;  
+ 186   4                      fmq = 1;  
+ 187   4                      return 0;  
+ 188   4                  }  
+ 189   3              }  
+ 190   2              on_off = FLAG_ON;  
+ 191   2              scomm();  
+ 192   2              return 1;  
+ 193   2          }  
+ 194   1          return 0;  
+ 195   1      }  
+ 196            
+ 197            
+ 198          /********************************************************************************** 
+ 199              功能:         初始化，包括对led，定时器,串口的初始化 
+ 200          ***********************************************************************************/  
+ 201          void init()  
+ 202          {  
+ 203   1          led_change(0);  
+ 204   1          fmq = 0;  
+ 205   1          delayms(20);  
+ 206   1          fmq = 1;  
+ 207   1            
+ 208   1          P1M0 = 0;P1M1 = 0;        
+ 209   1          SCON = 0x40;                      
+ 210   1          T2L = 0xe0;         //定时器2作为波特率发生器  
+ 211   1          T2H = 0xfe;  
+ 212   1          AUXR = 0x14;  
+ 213   1          AUXR |= 0x01;  
+ 214   1          TI = 1;  
+ 215   1      }  
+ 216            
+ 217            
+ 218          /********************************************************************************** 
+ 219              功能:         发送单片机信息，一次七个字节,其中首字节为状态，其余六字节为当前密码 
+ 220          ***********************************************************************************/  
+ 221          void scomm()  
+ 222          {  
+ 223   1          uchar i;  
+ 224   1          SBUF = on_off;   
+ 225   1          while(TI == 0);  
+ 226   1          TI = 0;  
+ 227   1            
+ 228   1          for(i=0;i<6;i++)  
+ 229   1          {  
+ 230   2                      delayms(1000);
+ 231   2              while(TI == 0);  
+ 232   2              {  
+ 233   3                  TI = 0;  
+ 234   3                  SBUF = password[i];  
+ 235   3              }  
+ 236   2          }  
+ 237   1      }  
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    596    ----
+C51 COMPILER V9.00   FUNCTION                                                              05/02/2018 09:29:28 PAGE 5   
+
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     12    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
